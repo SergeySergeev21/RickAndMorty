@@ -68,6 +68,7 @@ android {
     }
     dependencies {
         debugImplementation(compose.uiTooling)
+        implementation(libs.coil.kt.coil.compose)
     }
 }
 

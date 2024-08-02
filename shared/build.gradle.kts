@@ -4,6 +4,8 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.skie)
+    kotlin("plugin.serialization") version libs.versions.kotlin
 }
 
 kotlin {
@@ -27,10 +29,19 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+            implementation(libs.coroutines)
+            implementation(libs.kotlin.json)
+            implementation(libs.ktor.core)
+            implementation(libs.ktor.negotiation)
+            implementation(libs.ktor.json)
+            implementation(libs.coil.compose)
+            implementation(libs.coil.network.ktor)
         }
         androidMain.dependencies {
+            implementation(libs.ktor.android)
         }
         iosMain.dependencies {
+            implementation(libs.ktor.ios)
         }
     }
 }
