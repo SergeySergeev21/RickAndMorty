@@ -1,3 +1,5 @@
+package domain
+
 data class CharacterModel(
     val id: String,
     val name: String,

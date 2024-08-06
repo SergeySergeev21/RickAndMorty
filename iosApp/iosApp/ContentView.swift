@@ -2,20 +2,34 @@ import SwiftUI
 import Shared
 
 struct ContentView: View {
-    let characters = [
-        CharacterModel(id: "1", name: "Rick", status: "Alive", species: "Human", type: "", gender: "Male", image: ""),
-        CharacterModel(id: "2", name: "Morty", status: "Alive", species: "Human", type: "", gender: "Male", image: ""),
-        CharacterModel(id: "3", name: "Summer", status: "Alive", species: "Human", type: "", gender: "Woman", image: ""),
-        CharacterModel(id: "4", name: "Beth", status: "Alive", species: "Human", type: "", gender: "Woman", image: ""),
-    ]
+    
+    @StateObject
+    var controller = Controller()
     
     var body: some View {
         ScrollView {
             LazyVGrid(columns: [GridItem(), GridItem()], content: {
-                ForEach(characters, id: \.id) { character in
+                ForEach(controller.characters, id: \.id) { character in
                     CharacterView(character: character)
                 }
             })
+            .task {
+                await controller.startObserving()
+            }
+        }
+    }
+}
+
+class Controller: ObservableObject {
+    @Published
+    var characters: [CharacterModel] = []
+    
+    @MainActor
+    func startObserving() async {
+        CharacterController().loadNewCharacters()
+        
+        for await newList in CharacterController().characters {
+            characters = newList
         }
     }
 }
@@ -25,11 +39,16 @@ struct CharacterView: View {
     
     var body: some View {
         VStack {
-            Image("Rick")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
+            AsyncImage(
+                url: URL(string: character.image),
+                content: { image in
+                    image.resizable().aspectRatio(contentMode: .fit)
+                },
+                placeholder: { ProgressView() }
+            )
             Text(character.name)
-                .font(.system(size: 30))
+                .font(.system(size: 24))
+                .lineLimit(1)
             CharacterDescriptionValue(description: "status: ", value: character.status)
             CharacterDescriptionValue(description: "species: ", value: character.species)
             CharacterDescriptionValue(description: "type: ", value: character.type)
@@ -53,8 +72,10 @@ struct CharacterDescriptionValue: View {
             HStack() {
                 Text(description)
                     .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/)
+                    .lineLimit(1)
                 Text(value)
                     .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/)
+                    .lineLimit(1)
             }
         }
     }
